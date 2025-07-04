@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:turfly/widgets/auth_form.dart';
+import '../widgets/auth_form.dart';
 
 class UserLoginPage extends StatelessWidget {
   const UserLoginPage({super.key});
@@ -9,10 +9,14 @@ class UserLoginPage extends StatelessWidget {
     return AuthForm(
       title: 'User Login',
       buttonText: 'Login',
-      onSubmit: () {},
-      footerText: 'Already have account? ',
-      footerActionText: 'SignUp',
-      onFooterTap: () => Navigator.pushNamed(context, '/user_register'),
+      isLogin: true,
+      role: AuthRole.user,
+      onSwitch: () => Navigator.pushReplacementNamed(context, '/user_register'),
+      onNavigateBack: () => Navigator.pushReplacementNamed(context, '/'),
+      onSuccess: (_) => Navigator.pushReplacementNamed(context, '/personal_details'),
+      footerText: 'Don\'t have an account? ',
+      footerActionText: 'Sign Up',
+      showBackButton: true,
     );
   }
 }

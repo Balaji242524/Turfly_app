@@ -9,10 +9,13 @@ class UserRegisterPage extends StatelessWidget {
     return AuthForm(
       title: 'User Register',
       buttonText: 'Register',
-      onSubmit: () {},
-      footerText: 'Already have account? ',
-      footerActionText: 'Signin',
-      onFooterTap: () => Navigator.pushNamed(context, '/user_login'),
+      isLogin: false,
+      role: AuthRole.user,
+      onSwitch: () => Navigator.pushReplacementNamed(context, '/user_login'),
+      onNavigateBack: () => Navigator.pushReplacementNamed(context, '/'),
+      onSuccess: (_) => Navigator.pushReplacementNamed(context, '/user_login'),
+      footerText: 'Already have an account? ',
+      footerActionText: 'Login',
       showBackButton: true,
     );
   }

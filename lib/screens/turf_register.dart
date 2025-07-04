@@ -7,12 +7,15 @@ class TurfRegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AuthForm(
-      title: 'Turf Register',
+      title: 'Turf Owner Register',
       buttonText: 'Register',
-      onSubmit: () {},
-      footerText: 'Already have account? ',
-      footerActionText: 'Signin',
-      onFooterTap: () => Navigator.pushNamed(context, '/turf_login'),
+      isLogin: false,
+      role: AuthRole.turf,
+      onSwitch: () => Navigator.pushReplacementNamed(context, '/turf_login'),
+      onNavigateBack: () => Navigator.pushReplacementNamed(context, '/'),
+      onSuccess: (_) => Navigator.pushReplacementNamed(context, '/turf_login'),
+      footerText: 'Already have an account? ',
+      footerActionText: 'Login',
       showBackButton: true,
     );
   }
