@@ -21,14 +21,13 @@ class AuthService {
     if (doc.exists) {
       return doc.data()?['role'];
     } else {
-      // Optionally: create the doc or return null
       return null;
     }
   }
 
   Future<String?> signInWithGoogle(String roleOnFirstSignIn) async {
     final google = GoogleSignIn(
-      clientId: "YOUR-WEB-CLIENT-ID.apps.googleusercontent.com", // ← Replace
+      clientId: "780600415180-1f8ip5jh3e4nnmhpk5r96raduuguta9i.apps.googleusercontent.com",
     );
 
     final user = await google.signIn();

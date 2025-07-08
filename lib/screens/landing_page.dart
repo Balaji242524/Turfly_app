@@ -13,7 +13,7 @@ class LandingPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.asset('assets/images/turf_logo.png', height: 90),
+              Image.asset('assets/images/turf_logof.png', height: 90),
               const SizedBox(height: 10),
               ShaderMask(
                 shaderCallback: (bounds) => const LinearGradient(

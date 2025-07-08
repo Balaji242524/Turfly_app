@@ -40,7 +40,7 @@ class AuthForm extends StatelessWidget {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(children: [
-                Image.asset('assets/images/turf_logo.png', height: 100),
+                Image.asset('assets/images/turf_logof.png', height: 100),
                 const SizedBox(height: 10),
                 const Text('Turfly', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF00ED0C))),
                 const SizedBox(height: 20),

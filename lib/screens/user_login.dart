@@ -13,7 +13,7 @@ class UserLoginPage extends StatelessWidget {
       role: AuthRole.user,
       onSwitch: () => Navigator.pushReplacementNamed(context, '/user_register'),
       onNavigateBack: () => Navigator.pushReplacementNamed(context, '/'),
-      onSuccess: (_) => Navigator.pushReplacementNamed(context, '/personal_details'),
+      onSuccess: (_) => Navigator.pushReplacementNamed(context, '/user/user_personal_details'),
       footerText: 'Don\'t have an account? ',
       footerActionText: 'Sign Up',
       showBackButton: true,
