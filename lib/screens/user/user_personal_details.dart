@@ -54,21 +54,24 @@ class _UserPersonalDetailsPageState extends State<UserPersonalDetailsPage> {
   }) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10),
-      padding: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.grey.shade300,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black),
       ),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: type,
-        validator: validator,
-        decoration: InputDecoration(
-          icon: Icon(icon, color: Color(0xFF00ED0C)),
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey),
-          border: InputBorder.none,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: TextFormField(
+          controller: controller,
+          keyboardType: type,
+          validator: validator,
+          style: TextStyle(color: Colors.black),
+          decoration: InputDecoration(
+            icon: Icon(icon, color: Color(0xFF00ED0C), size: 24),
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey),
+            border: InputBorder.none,
+          ),
         ),
       ),
     );
@@ -78,17 +81,15 @@ class _UserPersonalDetailsPageState extends State<UserPersonalDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: Stack(
-        children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    width: MediaQuery.of(context).size.width, // ✅ Fill full width
-                    height: 120, // Adjust as needed
+                    width: double.infinity,
+                    height: 120,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [Color(0xFF00ED0C), Color(0xFF008B05)],
@@ -102,87 +103,85 @@ class _UserPersonalDetailsPageState extends State<UserPersonalDetailsPage> {
                     ),
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        Image.asset('assets/images/turf_logof.png', height: 70, width: 70),
+                        SizedBox(width: 6),
                         Image.asset(
-                          'assets/images/turf_logof.png',
-                          height: 55,
-                          width: 55,
-                        ),
-                        SizedBox(width: 12),
-                        Text(
-                          'TURFLY',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            fontFamily: 'Sansista One', // ✅ Make sure pubspec.yaml has this
-                          ),
+                          'assets/images/TURFLY.png',
+                          height: 30,
                         ),
                       ],
                     ),
                   ),
-
                   SizedBox(height: 25),
-                  Text(
-                    'Complete your profile by providing your\npersonal and contact information.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 15),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      'Complete your profile by providing your\npersonal and contact information.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 15),
+                    ),
                   ),
                   SizedBox(height: 25),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        buildInputField(
-                          icon: Icons.person_outline,
-                          hint: 'Enter your Name',
-                          controller: _nameController,
-                          validator: (val) => val == null || val.isEmpty ? 'Name required' : null,
-                        ),
-                        buildInputField(
-                          icon: Icons.phone_android,
-                          hint: 'Enter your Mobile Number',
-                          controller: _mobileController,
-                          type: TextInputType.phone,
-                          validator: (val) {
-                            if (val == null || val.isEmpty) return 'Mobile required';
-                            if (val.length != 10) return 'Enter 10 digit mobile';
-                            return null;
-                          },
-                        ),
-                        buildInputField(
-                          icon: Icons.calendar_today_outlined,
-                          hint: 'Enter your Age',
-                          controller: _ageController,
-                          type: TextInputType.number,
-                          validator: (val) => val == null || val.isEmpty ? 'Age required' : null,
-                        ),
-                        SizedBox(height: 100),
-                      ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          buildInputField(
+                            icon: Icons.person_outline,
+                            hint: 'Enter your Name',
+                            controller: _nameController,
+                            validator: (val) => val == null || val.isEmpty ? 'Name required' : null,
+                          ),
+                          buildInputField(
+                            icon: Icons.phone_android,
+                            hint: 'Enter your Mobile Number',
+                            controller: _mobileController,
+                            type: TextInputType.phone,
+                            validator: (val) {
+                              if (val == null || val.isEmpty) return 'Mobile required';
+                              if (val.length != 10) return 'Enter 10 digit mobile';
+                              return null;
+                            },
+                          ),
+                          buildInputField(
+                            icon: Icons.calendar_today_outlined,
+                            hint: 'Enter your Age',
+                            controller: _ageController,
+                            type: TextInputType.number,
+                            validator: (val) => val == null || val.isEmpty ? 'Age required' : null,
+                          ),
+                          SizedBox(height: 100),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: ElevatedButton(
-              onPressed: saveDetails,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF00ED0C),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child: ElevatedButton(
+                onPressed: saveDetails,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF00ED0C),
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                child: Text(
+                  'Save',
+                  style: TextStyle(fontSize: 16, color: Colors.black),
+                ),
               ),
-              child: Text('Save', style: TextStyle(fontSize: 16, color: Colors.black)),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

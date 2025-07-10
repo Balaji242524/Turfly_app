@@ -43,6 +43,9 @@ dependencies:
   cloud_firestore: ^4.14.0
   google_sign_in: ^6.2.1
   js: ^0.6.7
+  file_picker: ^5.5.0
+  google_maps_flutter: ^2.5.0
+  geolocator: ^11.0.0
 
 
 dev_dependencies:
@@ -72,10 +75,11 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-     - assets/images/turf_logo.png
+     - assets/images/mdi_football-pitch.png
      - assets/images/turf.jpg
      - assets/images/google_icon.png
      - assets/images/turf_logof.png
+     - assets/images/TURFLY.png
 
 
   # To add assets to your application, add an assets section, like this:

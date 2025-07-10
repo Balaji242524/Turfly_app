@@ -42,7 +42,7 @@ class AuthForm extends StatelessWidget {
               child: Column(children: [
                 Image.asset('assets/images/turf_logof.png', height: 100),
                 const SizedBox(height: 10),
-                const Text('Turfly', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF00ED0C))),
+                Image.asset('assets/images/TURFLY.png', height: 30),
                 const SizedBox(height: 20),
                 Text(title, style: const TextStyle(fontSize: 22, color: Color(0xFF00ED0C))),
                 const SizedBox(height: 30),
