@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/auth_form.dart';
+import "package:turfly/screens/user/user_check_page.dart";
 
 class UserLoginPage extends StatelessWidget {
   const UserLoginPage({super.key});
@@ -13,7 +14,12 @@ class UserLoginPage extends StatelessWidget {
       role: AuthRole.user,
       onSwitch: () => Navigator.pushReplacementNamed(context, '/user_register'),
       onNavigateBack: () => Navigator.pushReplacementNamed(context, '/'),
-      onSuccess: (_) => Navigator.pushReplacementNamed(context, '/user/user_personal_details'),
+      onSuccess: (_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => UserCheckPage()),
+        );
+      },
       footerText: 'Don\'t have an account? ',
       footerActionText: 'Sign Up',
       showBackButton: true,

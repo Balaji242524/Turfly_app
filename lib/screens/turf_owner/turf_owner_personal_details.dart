@@ -19,17 +19,27 @@ class _TurfOwnerPersonalDetailsPageState
   void saveDetails() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    final email = FirebaseAuth.instance.currentUser?.email;
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid;
+    final email = user?.email;
 
-    if (uid != null) {
+    if (uid != null && email != null) {
       try {
+
         await FirebaseFirestore.instance.collection('turfOwners').doc(uid).set({
           'name': _nameController.text.trim(),
           'mobile': _mobileController.text.trim(),
           'age': _ageController.text.trim(),
           'email': email,
           'role': 'turf_owner',
+        }, SetOptions(merge: true));
+
+
+        await FirebaseFirestore.instance.collection('turfs').doc(uid).set({
+          'name': _nameController.text.trim(),
+          'mobile': _mobileController.text.trim(),
+          'email': email,
+          'createdAt': Timestamp.now(),
         }, SetOptions(merge: true));
 
         Navigator.pushReplacement(

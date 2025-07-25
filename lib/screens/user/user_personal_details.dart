@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:turfly/screens/user/user_home_page.dart';
 
 class UserPersonalDetailsPage extends StatefulWidget {
   @override
@@ -29,21 +30,29 @@ class _UserPersonalDetailsPageState extends State<UserPersonalDetailsPage> {
           }, SetOptions(merge: true));
 
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Details saved successfully')),
+            const SnackBar(content: Text('Details saved successfully')),
           );
+
+          // Navigate to user home page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const UserHomePage()),
+          );
+
         } catch (e) {
           print('Error saving details: $e');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to save details')),
+            const SnackBar(content: Text('Failed to save details')),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('User not logged in')),
+          const SnackBar(content: Text('User not logged in')),
         );
       }
     }
   }
+
 
   Widget buildInputField({
     required IconData icon,
