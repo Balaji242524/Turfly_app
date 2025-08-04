@@ -2,67 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:turfly/screens/user/user_turf_details_page.dart';
-
-// Dummy confirmation page for demonstration
-class ConfirmationPage extends StatelessWidget {
-  final List<Map<String, dynamic>> selectedSlots;
-  final Map<String, dynamic> turfData;
-  const ConfirmationPage({super.key, required this.selectedSlots, required this.turfData});
-  @override
-  Widget build(BuildContext context) {
-    final total = selectedSlots.fold<int>(0, (p, s) => p + int.tryParse(s['payment'].toString())!);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Confirmation'),
-        backgroundColor: Colors.green,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final slot in selectedSlots)
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${slot['date']} ${slot['fromTime']} To ${slot['toTime']}",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Row(
-                      children: [
-                        Text("₹${slot['payment']}"),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.delete_outline, size: 20),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 16),
-            Text("Total Payment: ₹$total"),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                onPressed: () {},
-                child: const Text('SUBMIT', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+import 'package:turfly/screens/user/confirmation_page.dart';
 
 class SlotPage extends StatefulWidget {
   final Map<String, dynamic> turfData;
@@ -74,7 +14,6 @@ class SlotPage extends StatefulWidget {
 class _SlotPageState extends State<SlotPage> {
   DateTime _selectedDate = DateTime.now();
   List<Map<String, dynamic>> availableSlots = [];
-  bool _showCalendar = false;
   bool _loading = true;
   Set<int> _selectedSlots = {};
 
@@ -90,36 +29,28 @@ class _SlotPageState extends State<SlotPage> {
       availableSlots = [];
       _selectedSlots.clear();
     });
-
     try {
       final String turfId = widget.turfData['turfId'] ?? '';
       if (turfId.isEmpty) {
-        print('ERROR: Turf ID not found in turfData: ${widget.turfData}');
-        setState(() {
-          _loading = false;
-        });
+        setState(() => _loading = false);
         return;
       }
       String dateString = DateFormat('yyyy-MM-dd').format(date);
-
       final QuerySnapshot<Map<String, dynamic>> slotSnapshot = await FirebaseFirestore.instance
           .collection('turfs').doc(turfId)
           .collection('slots')
           .where('date', isEqualTo: dateString)
           .get();
-
       final slots = slotSnapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id;
         return data;
       }).toList();
-
       setState(() {
         availableSlots = slots;
         _loading = false;
       });
     } catch (e) {
-      print('Error loading slots: $e');
       setState(() {
         availableSlots = [];
         _loading = false;
@@ -160,7 +91,18 @@ class _SlotPageState extends State<SlotPage> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.calendar_today, color: Colors.black),
-                onPressed: () => setState(() => _showCalendar = !_showCalendar),
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                    lastDate: DateTime.now().add(const Duration(days: 30)),
+                  );
+                  if (picked != null && picked != _selectedDate) {
+                    setState(() => _selectedDate = picked);
+                    _loadSlotsForDate(picked);
+                  }
+                },
               ),
               IconButton(
                 icon: const Icon(Icons.info_outline, color: Colors.black),
@@ -200,9 +142,7 @@ class _SlotPageState extends State<SlotPage> {
                     _selectedDate.day == date.day;
                 return GestureDetector(
                   onTap: () {
-                    setState(() {
-                      _selectedDate = date;
-                    });
+                    setState(() => _selectedDate = date);
                     _loadSlotsForDate(date);
                   },
                   child: Container(
@@ -250,7 +190,6 @@ class _SlotPageState extends State<SlotPage> {
               },
             ),
           ),
-
           // Book Now Button - top right, only if a slot is selected
           Padding(
             padding: const EdgeInsets.only(right: 24, top: 8, bottom: 8),
@@ -258,7 +197,7 @@ class _SlotPageState extends State<SlotPage> {
               alignment: Alignment.centerRight,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _selectedSlots.isNotEmpty ? Colors.green[800] : Colors.grey.shade400,
+                  backgroundColor: _selectedSlots.isNotEmpty ? Colors.green[500] : Colors.grey.shade400,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
@@ -286,7 +225,6 @@ class _SlotPageState extends State<SlotPage> {
               ),
             ),
           ),
-
           // Available Sports with Icons
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -316,7 +254,6 @@ class _SlotPageState extends State<SlotPage> {
               ],
             ),
           ),
-
           // Available Slots
           Expanded(
             child: _loading

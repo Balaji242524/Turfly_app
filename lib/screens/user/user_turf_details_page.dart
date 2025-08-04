@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:turfly/screens/user/slot_page.dart';
 
 class UserTurfDetailsPage extends StatelessWidget {
   final Map<String, dynamic> turfData;
@@ -253,30 +254,24 @@ class UserTurfDetailsPage extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        backgroundColor: Colors.green[500],
                       ),
                       onPressed: () {
-                        // Handle booking
-                      },
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00ED0C), Color(0xFF008B05)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Container(
-                          alignment: Alignment.center,
-                          constraints: const BoxConstraints(minHeight: 50),
-                          child: const Text(
-                            'Book Now',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SlotPage(
+                              turfData: turfData,
                             ),
                           ),
+                        );
+                      },
+                      child: const Text(
+                        'Book Now',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),

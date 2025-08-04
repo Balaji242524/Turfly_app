@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:turfly/screens/user/user_turf_details_page.dart';
 
 class ConfirmationPage extends StatefulWidget {
@@ -16,21 +18,82 @@ class ConfirmationPage extends StatefulWidget {
 
 class _ConfirmationPageState extends State<ConfirmationPage> {
   late List<Map<String, dynamic>> slotsToConfirm;
+  late Razorpay _razorpay;
+  String _selectedPaymentType = "full";
 
   @override
   void initState() {
     super.initState();
     slotsToConfirm = List<Map<String, dynamic>>.from(widget.selectedSlots);
+
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  @override
+  void dispose() {
+    _razorpay.clear();
+    super.dispose();
+  }
+
+  void _startRazorpay(int amount, String turfName) {
+    var options = {
+      'key': '<>',
+      'amount': amount * 100,
+      'name': turfName.isNotEmpty ? turfName : "Turf Booking",
+      'description': _selectedPaymentType == "full" ? 'Full Payment' : 'Advance Payment',
+      //Optional:
+      'prefill': {'contact': '9944031161', 'email': 'turfly24@gmail.com'}
+    };
+
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error launching Razorpay, try again.')),
+      );
+    }
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Payment Success! Payment ID: ${response.paymentId}"),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.pop(context); // return to previous page after payment
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Payment Failed. Reason: ${response.message}"),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text("External wallet selected.")));
   }
 
   @override
   Widget build(BuildContext context) {
     final turf = widget.turfData;
-    // Calculate combined total
     int total = slotsToConfirm.fold<int>(0, (p, s) => p + int.tryParse(s['payment']?.toString() ?? '0')!);
-    int advance = (total * 0.24).round(); // sample: 24% as in your screenshot
-    int gatewayFee = ((total + 0.18 * total) - total).round(); // sample, 18% GST
-    int payable = total + 75; // Use fixed 75 for fee per screenshot, or use gatewayFee
+    int advance = (total * 0.24).round();
+    int payAmount = _selectedPaymentType == "full" ? total : advance;
+    int gatewayFee = 75;
+    int payable = payAmount + gatewayFee;
+
+    Color highlight = const Color(0xFF68FF70);
+
+    TextStyle rowLabel = const TextStyle(fontWeight: FontWeight.w500, fontSize: 15);
+    TextStyle rowValue = const TextStyle(fontWeight: FontWeight.w700, fontSize: 15);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,17 +108,16 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
               color: Colors.black
           ),
         ),
-        backgroundColor: const Color(0xFF00ED0C), // Match your green
+        backgroundColor: const Color(0xFF00ED0C),
         elevation: 0,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.only(top: 10, left: 18, right: 18, bottom: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Slot list
               ...slotsToConfirm.asMap().entries.map((e) {
                 final slot = e.value;
                 final idx = e.key;
@@ -63,21 +125,25 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     children: [
+                      Text(
+                        "${_formatSlotDate(slot['date'])} ",
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
                       Expanded(
                         child: Text(
-                          "${slot['date']} ${slot['fromTime']} To ${slot['toTime']} ",
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          "${slot['fromTime']} To ${slot['toTime']}",
+                          style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14, color: Colors.black54),
                         ),
                       ),
                       ...List<String>.from(widget.turfData['sports'] ?? []).map((sport) {
                         final iconPath = 'assets/images/${sport.toLowerCase().replaceAll(' ', '_')}-icon.png';
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 1.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 1.7),
                           child: Image.asset(
                             iconPath,
                             width: 22,
@@ -88,28 +154,17 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                       }),
                       IconButton(
                         icon: const Icon(Icons.delete_outline, size: 22),
+                        splashRadius: 20,
                         onPressed: () {
-                          setState(() {
-                            slotsToConfirm.removeAt(idx);
-                          });
+                          setState(() { slotsToConfirm.removeAt(idx); });
                         },
                       ),
                     ],
                   ),
                 );
               }),
-              if (slotsToConfirm.isEmpty)
-                Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(vertical: 22),
-                  child: const Text(
-                    'No slots selected.',
-                    style: TextStyle(color: Colors.black54),
-                  ),
-                ),
-              // View details
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(vertical: 9),
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -135,109 +190,111 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 6),
-              // Payment section
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 5),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.green[50],
-                            borderRadius: BorderRadius.circular(9),
-                            border: Border.all(color: Colors.green),
-                          ),
-                          child: Column(
-                            children: [
-                              const Text(
-                                "Full Payment",
-                                style: TextStyle(fontWeight: FontWeight.w500),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                "₹ $total",
-                                style: TextStyle(
-                                  color: Colors.green[800],
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              ),
-                            ],
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedPaymentType = "full"),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 5),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: _selectedPaymentType == "full" ? highlight : Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _selectedPaymentType == "full" ? highlight : Colors.grey,
+                            width: 2,
                           ),
                         ),
-                      ],
+                        child: Column(
+                          children: [
+                            Text(
+                              "Full Payment",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "₹ $total",
+                              style: TextStyle(
+                                color: Colors.green[900],
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 15),
                   Expanded(
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 5),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(9),
-                            border: Border.all(color: Colors.green),
-                          ),
-                          child: Column(
-                            children: [
-                              const Text(
-                                "Advance Payment",
-                                style: TextStyle(fontWeight: FontWeight.w500),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                "₹ $advance",
-                                style: const TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              ),
-                            ],
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedPaymentType = "advance"),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 5),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: _selectedPaymentType == "advance" ? highlight : Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _selectedPaymentType == "advance" ? highlight : Colors.grey,
+                            width: 2,
                           ),
                         ),
-                      ],
+                        child: Column(
+                          children: [
+                            Text(
+                              "Advance Payment",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "₹ $advance",
+                              style: TextStyle(
+                                color: Colors.green[900],
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              // Total and payment summary
+              const SizedBox(height: 18),
               Row(
                 children: [
-                  const Text(
-                    "Total Payment:",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
+                  Text("Total Payment:", style: rowLabel),
                   const Spacer(),
-                  Text("₹ $total", style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text("₹ $payAmount", style: rowValue),
                 ],
               ),
-              const SizedBox(height: 7),
+              const SizedBox(height: 5),
               Row(
                 children: [
-                  const Text(
-                    "Remaining Payment:",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
+                  Text("Remaining Payment:", style: rowLabel),
                   const Spacer(),
-                  const Text("₹ 0", style: TextStyle(fontWeight: FontWeight.w700)),
+                  Text(
+                    _selectedPaymentType == "full" ? "₹ 0" : "₹ ${total - advance}",
+                    style: rowValue,
+                  ),
                 ],
               ),
-              const SizedBox(height: 7),
+              const SizedBox(height: 5),
               Row(
                 children: [
-                  const Text(
-                    "Payment gateway Fee + 18% GST tax",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
+                  Text("Payment gateway Fee + 18% GST tax", style: rowLabel),
                   const Spacer(),
-                  const Text("₹ 75", style: TextStyle(fontWeight: FontWeight.w700)),
+                  Text("₹ $gatewayFee", style: rowValue),
                 ],
               ),
               const SizedBox(height: 16),
@@ -254,7 +311,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                   const Spacer(),
                   Text(
                     "₹ $payable",
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.w900,
                       fontSize: 17,
@@ -262,19 +319,72 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: slotsToConfirm.isNotEmpty ? () {} : null,
+                  onPressed: slotsToConfirm.isNotEmpty
+                      ? () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        content: const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Text(
+                            "Upon Confirmation from the owner, the designated payment for your slot will be processed and reflected in the Notification Screen.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                              decoration: BoxDecoration(
+                                  color: highlight,
+                                  borderRadius: BorderRadius.circular(7)),
+                              child: const Text(
+                                "Cancel",
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // close dialog
+                              _startRazorpay(payable, turf['turfName'] ?? '');
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: highlight,
+                                borderRadius: BorderRadius.circular(7),
+                              ),
+                              child: const Text(
+                                "Ok",
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                        actionsAlignment: MainAxisAlignment.spaceAround,
+                      ),
+                    );
+                  }
+                      : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green[700],
+                    backgroundColor: highlight,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   child: const Text(
                     "SUBMIT",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
                   ),
                 ),
               ),
@@ -283,5 +393,21 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
         ),
       ),
     );
+  }
+
+  String _formatSlotDate(String? date) {
+    try {
+      final d = DateTime.parse(date!);
+      return "${d.day} ${_monthName(d.month)}";
+    } catch (_) {
+      return date ?? '';
+    }
+  }
+
+  String _monthName(int m) {
+    const names = [
+      "Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"
+    ];
+    return m >= 1 && m <= 12 ? names[m - 1] : '';
   }
 }
