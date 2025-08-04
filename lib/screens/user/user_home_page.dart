@@ -2,10 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:turfly/screens/user_login.dart';
+import 'package:turfly/screens/user/slot_page.dart';
 import 'package:turfly/screens/user/user_turf_details_page.dart';
 
-class UserHomePage extends StatelessWidget {
+class UserHomePage extends StatefulWidget {
   const UserHomePage({super.key});
+
+  @override
+  State<UserHomePage> createState() => _UserHomePageState();
+}
+
+class _UserHomePageState extends State<UserHomePage> {
+  bool _showSearch = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  int _currentImageIndex = 0;
 
   void _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -15,35 +26,87 @@ class UserHomePage extends StatelessWidget {
     );
   }
 
+  void _toggleSearch() {
+    setState(() {
+      _showSearch = !_showSearch;
+      if (!_showSearch) {
+        _searchController.clear();
+        _searchQuery = '';
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.green[800],
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/images/TURFLY.png', height: 30),
-          ],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF00ED0C), Color(0xFF008B05)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(20),
+              bottomRight: Radius.circular(20),
+            ),
+          ),
+          child: AppBar(
+            title: _showSearch
+                ? TextField(
+              controller: _searchController,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'Search turfs...',
+                border: InputBorder.none,
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.close, size: 28),
+                  onPressed: _toggleSearch,
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+            )
+                : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/images/turf_logof.png', height: 60, width: 60),
+                const SizedBox(width: 6),
+                Image.asset('assets/images/TURFLY.png', height: 30),
+              ],
+            ),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            actions: [
+              if (!_showSearch)
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.black, size: 28),
+                  onPressed: _toggleSearch,
+                ),
+              IconButton(
+                icon: const Icon(Icons.notifications_none, color: Colors.black, size: 28),
+                onPressed: () {},
+              ),
+            ],
+          ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
       ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.green[800]),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF00ED0C), Color(0xFF008B05)],
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -62,6 +125,10 @@ class UserHomePage extends StatelessWidget {
               onTap: () {},
             ),
             ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profile'),
+            ),
+            ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () => _logout(context),
@@ -71,18 +138,61 @@ class UserHomePage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Banner Image
-          Container(
-            height: 150,
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              image: const DecorationImage(
-                image: AssetImage('assets/images/turf_banner.jpg'),
-                fit: BoxFit.cover,
+          // Sliding Image Banner
+          SizedBox(
+            height: 200,
+            child: Stack(
+              children: [
+                PageView(
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentImageIndex = index;
+                    });
+                  },
+                  children: [
+                    Image.asset('assets/images/turf.jpg', fit: BoxFit.cover),
+                    Image.asset('assets/images/turf1.jpeg', fit: BoxFit.cover),
+                    Image.asset('assets/images/turf2.jpg', fit: BoxFit.cover),
+                    Image.asset('assets/images/turf3.jpg', fit: BoxFit.cover),
+                    Image.asset('assets/images/turf4.jpg', fit: BoxFit.cover),
+                  ],
+                ),
+                Positioned(
+                  bottom: 10,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return Container(
+                        width: 8,
+                        height: 8,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _currentImageIndex == index
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.5),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Available Turfs',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
           ),
+          const SizedBox(height: 8),
 
           // Turf Cards
           Expanded(
@@ -96,100 +206,142 @@ class UserHomePage extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final turfs = snapshot.data!.docs;
+                var docs = snapshot.data!.docs;
+
+                // Attach turfId to every data map
+                var turfs = docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  data['turfId'] = doc.id; // <<--- KEY LINE
+                  return data;
+                }).toList();
+
+                // Apply search filter
+                if (_searchQuery.isNotEmpty) {
+                  turfs = turfs.where((data) {
+                    final name = data['turfName']?.toString().toLowerCase() ?? '';
+                    return name.contains(_searchQuery);
+                  }).toList();
+                }
 
                 if (turfs.isEmpty) {
                   return const Center(child: Text('No turfs available'));
                 }
 
-                return GridView.builder(
+                return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.8,
-                  ),
                   itemCount: turfs.length,
                   itemBuilder: (context, index) {
-                    final doc = turfs[index];
-                    final data = doc.data() as Map<String, dynamic>? ?? {};
+                    final data = turfs[index];
 
                     final turfName = data['turfName'] ?? 'Unnamed Turf';
                     final imageUrls = List<String>.from(data['images'] ?? []);
                     final firstImage = imageUrls.isNotEmpty ? imageUrls[0] : null;
                     final rating = data['rating'] ?? 4.5;
-                    final location = data['location'] ?? '';
+                    final sports = List<String>.from(data['sports'] ?? []);
 
-                    return InkWell(
+                    return GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => UserTurfDetailsPage(
-                              turfData: data,
-                              userData: {}, // Pass user data if needed
-                            ),
+                            builder: (_) => SlotPage(turfData: data),
                           ),
                         );
                       },
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Turf Image
-                            Container(
-                              height: 120,
-                              decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(12)),
-                                image: firstImage != null
-                                    ? DecorationImage(
-                                  image: NetworkImage(firstImage),
-                                  fit: BoxFit.cover,
-                                )
-                                    : const DecorationImage(
-                                  image: AssetImage('assets/images/turf_placeholder.jpg'),
-                                  fit: BoxFit.cover,
+                            Stack(
+                              children: [
+                                Container(
+                                  height: 150,
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(12)),
+                                    image: firstImage != null
+                                        ? DecorationImage(
+                                      image: NetworkImage(firstImage),
+                                      fit: BoxFit.cover,
+                                    )
+                                        : const DecorationImage(
+                                      image: AssetImage('assets/images/turf.jpg'),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: IconButton(
+                                    icon: const Icon(Icons.info_outline,
+                                        color: Colors.black, size: 28),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => UserTurfDetailsPage(
+                                            turfData: data,
+                                            userData: {},
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                             Padding(
-                              padding: const EdgeInsets.all(10),
+                              padding: const EdgeInsets.all(12),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    turfName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
                                   Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Icon(Icons.star,
-                                          color: Colors.amber, size: 16),
-                                      Text(' $rating',
-                                          style: const TextStyle(fontSize: 14)),
+                                      Text(
+                                        turfName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.star,
+                                              color: Colors.amber, size: 16),
+                                          Text(' $rating'),
+                                        ],
+                                      ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    location,
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    children: sports.map((sport) {
+                                      final iconPath =
+                                          'assets/images/${sport.toLowerCase().replaceAll(' ', '_')}-icon.png';
+                                      return Image.asset(
+                                        iconPath,
+                                        width: 24,
+                                        height: 24,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return const SizedBox(width: 24, height: 24);
+                                        },
+                                      );
+                                    }).toList(),
                                   ),
                                 ],
                               ),

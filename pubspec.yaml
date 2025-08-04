@@ -95,6 +95,10 @@ flutter:
      - assets/images/relax_area-icon.png
      - assets/images/toilet-icon.png
      - assets/images/food_court-icon.png
+     - assets/images/turf1.jpeg
+     - assets/images/turf2.jpg
+     - assets/images/turf3.jpg
+     - assets/images/turf4.jpg
 
 
   # To add assets to your application, add an assets section, like this:

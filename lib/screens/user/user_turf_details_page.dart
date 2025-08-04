@@ -29,33 +29,95 @@ class UserTurfDetailsPage extends StatelessWidget {
     final rating = turfData['rating'] ?? 4.5;
     final lat = turfData['latitude']?.toString();
     final lng = turfData['longitude']?.toString();
-    final squareFeet = turfData['squareFeet'] ?? '';
-    final description = turfData['description'] ?? 'No description available';
+    final description = turfData['description'];
+    final squareFeet = turfData['squareFeet']?.toString();
+    int _currentImageIndex = 0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(turfName),
-        backgroundColor: Colors.green[800],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF00ED0C), Color(0xFF008B05)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+          ),
+          child: AppBar(
+            title: Text(turfName),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Image Carousel
-            SizedBox(
-              height: 250,
-              child: images.isNotEmpty
-                  ? PageView.builder(
-                itemCount: images.length,
-                itemBuilder: (context, index) {
-                  return Image.network(
-                    images[index],
-                    fit: BoxFit.cover,
-                  );
-                },
-              )
-                  : Image.asset(
-                'assets/images/turf_placeholder.jpg',
-                fit: BoxFit.cover,
+            // Bordered Image Carousel
+            Container(
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.green[800]!, width: 2),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  height: 200,
+                  child: Stack(
+                    children: [
+                      images.isNotEmpty
+                          ? PageView.builder(
+                        itemCount: images.length,
+                        onPageChanged: (index) {
+                          _currentImageIndex = index;
+                        },
+                        itemBuilder: (context, index) {
+                          return Image.network(
+                            images[index],
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          );
+                        },
+                      )
+                          : Image.asset(
+                        'assets/images/turf.jpg',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
+                      if (images.length > 1)
+                        Positioned(
+                          bottom: 10,
+                          left: 0,
+                          right: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(images.length, (index) {
+                              return Container(
+                                width: 8,
+                                height: 8,
+                                margin: const EdgeInsets.symmetric(horizontal: 4),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _currentImageIndex == index
+                                      ? Colors.white
+                                      : Colors.white.withOpacity(0.5),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
             Padding(
@@ -63,25 +125,40 @@ class UserTurfDetailsPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Name / Rating Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         turfName,
                         style: const TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Row(
                         children: [
                           const Icon(Icons.star, color: Colors.amber),
-                          Text(' $rating'),
+                          Text('$rating'),
                         ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  // Square feet info
+                  if (squareFeet != null && squareFeet.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.square_foot, size: 16, color: Colors.green),
+                        const SizedBox(width: 5),
+                        Text(
+                          '$squareFeet sq.ft',
+                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 12),
                   // Location
                   GestureDetector(
                     onTap: () => _launchMap(lat, lng),
@@ -101,10 +178,11 @@ class UserTurfDetailsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   // Description
-                  Text(
-                    description,
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                  if (description != null && (description as String).trim().isNotEmpty)
+                    Text(
+                      description,
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   const SizedBox(height: 24),
                   // Sports
                   const Text(
@@ -118,9 +196,20 @@ class UserTurfDetailsPage extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     children: sports.map((sport) {
-                      return Chip(
-                        label: Text(sport),
-                        backgroundColor: Colors.green[100],
+                      final iconPath = 'assets/images/${sport.toLowerCase().replaceAll(' ', '_')}-icon.png';
+                      return Column(
+                        children: [
+                          Image.asset(
+                            iconPath,
+                            width: 40,
+                            height: 40,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const SizedBox(width: 40, height: 40);
+                            },
+                          ),
+                          const SizedBox(height: 4),
+                          Text(sport),
+                        ],
                       );
                     }).toList(),
                   ),
@@ -137,9 +226,20 @@ class UserTurfDetailsPage extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     children: amenities.map((amenity) {
-                      return Chip(
-                        label: Text(amenity),
-                        backgroundColor: Colors.blue[100],
+                      final iconPath = 'assets/images/${amenity.toLowerCase().replaceAll(' ', '_')}-icon.png';
+                      return Column(
+                        children: [
+                          Image.asset(
+                            iconPath,
+                            width: 40,
+                            height: 40,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const SizedBox(width: 40, height: 40);
+                            },
+                          ),
+                          const SizedBox(height: 4),
+                          Text(amenity),
+                        ],
                       );
                     }).toList(),
                   ),
@@ -149,15 +249,35 @@ class UserTurfDetailsPage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[800],
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       onPressed: () {
                         // Handle booking
                       },
-                      child: const Text(
-                        'Book Now',
-                        style: TextStyle(fontSize: 18),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00ED0C), Color(0xFF008B05)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Container(
+                          alignment: Alignment.center,
+                          constraints: const BoxConstraints(minHeight: 50),
+                          child: const Text(
+                            'Book Now',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
