@@ -149,9 +149,9 @@ class _SlotPageState extends State<SlotPage> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/turf_logof.png', height: 30, width: 30),
-                const SizedBox(width: 8),
-                Image.asset('assets/images/TURFLY.png', height: 20),
+                Image.asset('assets/images/turf_logof.png', height: 60, width: 60),
+                const SizedBox(width: 6),
+                Image.asset('assets/images/TURFLY.png', height: 30),
               ],
             ),
             backgroundColor: Colors.transparent,
