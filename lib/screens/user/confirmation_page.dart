@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:turfly/screens/user/user_turf_details_page.dart';
+// import the PaymentWebView for hybrid flows if needed
 
 class ConfirmationPage extends StatefulWidget {
   final List<Map<String, dynamic>> selectedSlots;
@@ -40,11 +40,10 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
 
   void _startRazorpay(int amount, String turfName) {
     var options = {
-      'key': '<>',
+      'key': '<rzp_test_PUmiajBH0Qjb1c>', // use your own Razorpay key
       'amount': amount * 100,
       'name': turfName.isNotEmpty ? turfName : "Turf Booking",
       'description': _selectedPaymentType == "full" ? 'Full Payment' : 'Advance Payment',
-      //Optional:
       'prefill': {'contact': '9944031161', 'email': 'turfly24@gmail.com'}
     };
 
@@ -324,8 +323,8 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: slotsToConfirm.isNotEmpty
-                      ? () {
-                    showDialog(
+                      ? () async {
+                    final result = await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
                         content: const Padding(
@@ -338,7 +337,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                         ),
                         actions: [
                           TextButton(
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () => Navigator.pop(context, false),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
                               decoration: BoxDecoration(
@@ -353,10 +352,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {
-                              Navigator.pop(context); // close dialog
-                              _startRazorpay(payable, turf['turfName'] ?? '');
-                            },
+                            onPressed: () => Navigator.pop(context, true),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
                               decoration: BoxDecoration(
@@ -375,6 +371,13 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                         actionsAlignment: MainAxisAlignment.spaceAround,
                       ),
                     );
+                    if (result == true) {
+                      // For NATIVE (Android/iOS):
+                      _startRazorpay(payable, turf['turfName'] ?? '');
+                      // For WEBVIEW, open webview instead (OPTIONAL):
+                      // Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                      //   PaymentWebView(paymentUrl: "https://yourdomain.com/payment.html")));
+                    }
                   }
                       : null,
                   style: ElevatedButton.styleFrom(
@@ -403,8 +406,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
       return date ?? '';
     }
   }
-
-  String _monthName(int m) {
+    String _monthName(int m) {
     const names = [
       "Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"
     ];
