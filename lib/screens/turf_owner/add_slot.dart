@@ -276,13 +276,16 @@ class _AddSlotPageState extends State<AddSlotPage> {
                             border: Border.all(color: Colors.black54),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('${slot['fromTime']} To ${slot['toTime']}', style: TextStyle(fontSize: 14)),
-                              SizedBox(height: 4),
-                              Text('₹ ${slot['payment']}/-', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ],
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('${slot['fromTime']} To ${slot['toTime']}', style: TextStyle(fontSize: 14)),
+                                SizedBox(height: 4),
+                                Text('₹ ${slot['payment']}/-', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -301,15 +304,28 @@ class _AddSlotPageState extends State<AddSlotPage> {
     return Container(
       width: 70,
       margin: EdgeInsets.symmetric(horizontal: 5),
+      padding: EdgeInsets.symmetric(vertical: 8), // Added vertical padding
       decoration: BoxDecoration(
         color: isSelected ? Color(0xFF94FF99) : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(15),
       ),
       alignment: Alignment.center,
-      child: Text(
-        '${DateFormat('d\nMMM\nEEE').format(date)}',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.black),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            DateFormat('d').format(date),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          Text(
+            DateFormat('MMM').format(date),
+            style: TextStyle(fontSize: 12, color: Colors.black),
+          ),
+          Text(
+            DateFormat('EEE').format(date),
+            style: TextStyle(fontSize: 12, color: Colors.black),
+          ),
+        ],
       ),
     );
   }
