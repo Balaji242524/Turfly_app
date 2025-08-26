@@ -329,7 +329,8 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                         content: const Padding(
                           padding: EdgeInsets.all(12),
                           child: Text(
-                            "Upon Confirmation from the owner, the designated payment for your slot will be processed and reflected in the Notification Screen.",
+                            ""
+                                "",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                           ),
